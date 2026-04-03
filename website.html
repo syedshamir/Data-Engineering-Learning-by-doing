@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Data Engineering Lab — Learn by Building</title>
+<meta name="description" content="11 interactive playgrounds to learn data engineering concepts: CDC, Star Schema, SCD, Data Quality, and more."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;
+  --bg2:#111111;
+  --bg3:#181818;
+  --bg4:#1f1f1f;
+  --border:#2a2a2a;
+  --border2:#333;
+  --text:#e8e6e0;
+  --text2:#888;
+  --text3:#555;
+  --green:#00d97e;
+  --blue:#4dabf7;
+  --amber:#fcc419;
+  --red:#ff6b6b;
+  --purple:#b197fc;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+}
+html{height:100%;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;height:100%;overflow-x:hidden}
+a{color:var(--green);text-decoration:none}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Layout */
+#root{display:flex;flex-direction:column;min-height:100vh}
+.hero{padding:60px 40px 40px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0d1f15 0%,var(--bg) 100%);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 50%, #00d97e08 0%, transparent 50%),radial-gradient(circle at 80% 20%, #4dabf708 0%, transparent 50%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:#00d97e12;border:1px solid #00d97e33;border-radius:4px;padding:3px 10px;font-family:var(--mono);font-size:11px;color:var(--green);margin-bottom:20px}
+.hero-badge::before{content:'●';font-size:8px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-size:clamp(28px,5vw,52px);font-weight:300;line-height:1.1;letter-spacing:-1px;margin-bottom:12px}
+.hero h1 span{color:var(--green);font-weight:500}
+.hero p{font-size:15px;color:var(--text2);max-width:560px;line-height:1.7;margin-bottom:28px}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column;gap:2px}
+.hero-stat-num{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--green)}
+.hero-stat-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em}
+
+/* App shell */
+.app-shell{display:flex;flex:1;min-height:0}
+.sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg2);overflow-y:auto;position:sticky;top:0;height:calc(100vh - 0px);max-height:100vh}
+.sidebar-header{padding:14px 16px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-left:2px solid transparent;transition:all .12s;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);border-left-color:var(--green);color:var(--text)}
+.nav-item .nav-icon{font-size:13px;min-width:18px;text-align:center;font-family:var(--mono)}
+.nav-item .nav-label{font-size:12px;color:var(--text2);line-height:1.3}
+.nav-item.active .nav-label{color:var(--text)}
+.nav-number{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text3)}
+
+/* Content */
+.content{flex:1;overflow-y:auto}
+.panel{max-width:860px;margin:0 auto;padding:36px 40px}
+
+/* Components */
+.section-title{margin-bottom:24px}
+.section-title-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.section-icon{font-size:18px;font-family:var(--mono)}
+.section-name{font-size:20px;font-weight:400;letter-spacing:-0.3px}
+.section-desc{font-size:13px;color:var(--text2);line-height:1.65;max-width:640px}
+
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+.tag{display:inline-flex;align-items:center;border-radius:3px;padding:1px 7px;font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:0.03em}
+
+pre.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-family:var(--mono);font-size:11px;line-height:1.75;overflow-x:auto;color:#a8c7a8;white-space:pre}
+pre.code-block .kw{color:#c792ea}
+pre.code-block .str{color:#c3e88d}
+pre.code-block .cm{color:#546e7a}
+pre.code-block .num{color:#f78c6c}
+
+.btn{cursor:pointer;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:500;font-family:var(--sans);transition:all .12s;border:1px solid var(--border2);background:var(--bg3);color:var(--text)}
+.btn:hover{border-color:var(--border2);background:var(--bg4)}
+.btn.primary{background:#00d97e18;border-color:#00d97e55;color:var(--green)}
+.btn.primary:hover{background:#00d97e28;border-color:var(--green)}
+.btn.primary:disabled{opacity:0.4;cursor:not-allowed}
+
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.metric-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px}
+.metric-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;font-family:var(--mono)}
+.metric-val{font-size:22px;font-weight:500;font-family:var(--mono)}
+
+table{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)}
+th{padding:6px 8px;text-align:left;border-bottom:1px solid var(--border2);color:var(--text3);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+td{padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:hover td{background:#ffffff04}
+
+.tab-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .12s;font-family:var(--sans)}
+.tab:hover{border-color:var(--border2);color:var(--text)}
+.tab.active{border-color:currentColor;background:transparent}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.col-label{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px}
+
+.info-box{border-radius:6px;padding:12px 14px;font-size:12px;line-height:1.6;margin:12px 0}
+
+select{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans);cursor:pointer;width:100%}
+select:focus{outline:none;border-color:var(--green)}
+input[type=range]{width:100%;accent-color:var(--green);cursor:pointer;margin-top:4px}
+input[type=checkbox]{accent-color:var(--green);cursor:pointer;width:14px;height:14px}
+label{font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;cursor:pointer}
+
+.tree-view{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:1.9;color:#a8c7a8;overflow-x:auto}
+
+.diff-row{border-radius:5px;padding:8px 10px;margin-bottom:6px;border:1px solid transparent}
+.pipeline-step{display:flex;align-items:center;gap:0}
+.step-dot{width:10px;height:10px;border-radius:50%;background:var(--purple);flex-shrink:0}
+.step-line{width:1.5px;height:28px;background:#b197fc44;margin-left:4px}
+.step-text{margin-left:12px;padding-bottom:12px}
+
+/* Hero grid pattern */
+.grid-pattern{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px, transparent 1px),linear-gradient(90deg, var(--border) 1px, transparent 1px);background-size:40px 40px;opacity:0.3;pointer-events:none}
+
+/* Footer */
+.footer{border-top:1px solid var(--border);padding:24px 40px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text3);background:var(--bg2)}
+.footer a{color:var(--text2)}
+.footer a:hover{color:var(--green)}
+
+/* Responsive */
+@media(max-width:768px){
+  .hero{padding:40px 20px 30px}
+  .app-shell{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static;display:flex;flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border)}
+  .sidebar-header{display:none}
+  .nav-item{flex-direction:column;padding:10px 12px;min-width:90px;text-align:center;border-left:none;border-bottom:2px solid transparent}
+  .nav-item.active{border-left-color:transparent;border-bottom-color:var(--green)}
+  .nav-number{display:none}
+  .panel{padding:24px 20px}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .metric-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-stats{gap:20px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+const concepts = [
+  { id:"dq",        label:"Data Quality Checker",    icon:"✓",  color:"#00d97e", num:"01" },
+  { id:"cdc",       label:"CDC Tracker",              icon:"⟳",  color:"#4dabf7", num:"02" },
+  { id:"star",      label:"Star Schema Builder",      icon:"★",  color:"#fcc419", num:"03" },
+  { id:"api",       label:"REST API → SQL Bridge",    icon:"⇄",  color:"#b197fc", num:"04" },
+  { id:"scd",       label:"SCD Type 1 & 2",           icon:"⏱",  color:"#ff8787", num:"05" },
+  { id:"lake",      label:"Data Lake Organizer",      icon:"⊞",  color:"#00d97e", num:"06" },
+  { id:"dlq",       label:"Dead Letter Queue",        icon:"⚑",  color:"#ff6b6b", num:"07" },
+  { id:"backfill",  label:"Backfill Script",          icon:"↺",  color:"#4dabf7", num:"08" },
+  { id:"diff",      label:"Data Diff Tool",           icon:"≠",  color:"#fcc419", num:"09" },
+  { id:"config",    label:"Config-Driven Pipeline",   icon:"⚙",  color:"#b197fc", num:"10" },
+  { id:"dashboard", label:"Dashboard Backend",        icon:"▤",  color:"#ff8787", num:"11" },
+];
+
+const Tag = ({color,children}) => (
+  <span className="tag" style={{background:color+'22',color,border:`1px solid ${color}44`}}>{children}</span>
+);
+
+const Code = ({children,style={}}) => (
+  <pre className="code-block" style={style}>{children}</pre>
+);
+
+const Btn = ({onClick,children,variant="default",disabled=false}) => (
+  <button className={`btn${variant==="primary"?" primary":""}`} onClick={disabled?undefined:onClick} disabled={disabled}>{children}</button>
+);
+
+const SectionTitle = ({icon,color,title,subtitle}) => (
+  <div className="section-title">
+    <div className="section-title-row">
+      <span className="section-icon" style={{color}}>{icon}</span>
+      <span className="section-name">{title}</span>
+    </div>
+    <p className="section-desc">{subtitle}</p>
+  </div>
+);
+
+// ── 1. DATA QUALITY CHECKER ──
+function DataQualityChecker() {
+  const rawData = [
+    {id:1,name:"Alice",email:"alice@example.com",age:29,country:"FI"},
+    {id:2,name:null,email:"bob@example.com",age:31,country:"SE"},
+    {id:3,name:"Carol",email:"not-an-email",age:-5,country:"NO"},
+    {id:4,name:"Dave",email:"dave@example.com",age:null,country:"DK"},
+    {id:5,name:"Eve",email:"eve@example.com",age:25,country:"XX"},
+  ];
+  const [checked,setChecked]=useState(false);
+  const validate=(row)=>{
+    const e=[];
+    if(!row.name) e.push({field:"name",rule:"NOT NULL"});
+    if(row.email&&!/^[^@]+@[^@]+\.[^@]+$/.test(row.email)) e.push({field:"email",rule:"EMAIL_FORMAT"});
+    if(row.age!==null&&(row.age<0||row.age>120)) e.push({field:"age",rule:"RANGE(0-120)"});
+    if(row.age===null) e.push({field:"age",rule:"NOT NULL"});
+    if(!["FI","SE","NO","DK"].includes(row.country)) e.push({field:"country",rule:"ENUM_CHECK"});
+    return e;
+  };
+  const results=rawData.map(r=>({...r,errors:validate(r)}));
+  const totalErrors=results.reduce((s,r)=>s+r.errors.length,0);
+  const passing=results.filter(r=>r.errors.length===0).length;
+  return (
+    <div>
+      <SectionTitle icon="✓" color="#00d97e" title="Data Quality Checker"
+        subtitle="Validates records against a schema: null checks, type enforcement, range rules, and enum constraints. Bad rows get flagged before loading into your warehouse."/>
+      <hr className="divider"/>
+      <div className="two-col" style={{marginBottom:16}}>
+        <div>
+          <div className="col-label">Schema Definition</div>
+          <Code>{"id      : integer\nname    : string (required)\nemail   : email format\nage     : integer (0-120)\ncountry : enum: FI,SE,NO,DK"}</Code>
+        </div>
+        <div>
+          <div className="col-label">Quality Stats</div>
+          <div className="metric-grid" style={{gridTemplateColumns:"1fr 1fr"}}>
+            {[["Total rows",rawData.length,"#888"],["Passing ✓",passing,"#00d97e"],["Failing ✗",rawData.length-passing,"#ff6b6b"],["Errors",totalErrors,"#ff6b6b"]].map(([l,v,c])=>(
+              <div className="metric-card" key={l}>
+                <div className="metric-label">{l}</div>
+                <div className="metric-val" style={{color:c,fontSize:20}}>{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <div className="col-label" style={{margin:0}}>Input Records</div>
+        <Btn onClick={()=>setChecked(c=>!c)} variant="primary">{checked?"Hide results":"▶ Run quality check"}</Btn>
+      </div>
+      <div style={{overflowX:"auto"}}>
+        <table>
+          <thead><tr>{["id","name","email","age","country",...(checked?["status","violations"]:[])].map(h=><th key={h}>{h}</th>)}</tr></thead>
+          <tbody>{results.map(row=>{
+            const hasErr=row.errors.length>0;
+            const errFields=row.errors.map(e=>e.field);
+            return (
+              <tr key={row.id} style={{background:checked&&hasErr?"#ff6b6b08":"transparent"}}>
+                {["id","name","email","age","country"].map(f=>(
+                  <td key={f} style={{color:checked&&errFields.includes(f)?"#ff6b6b":row[f]===null?"#555":"var(--text)"}}>
+                    {row[f]===null?<span style={{opacity:0.5}}>NULL</span>:String(row[f])}
+                  </td>
+                ))}
+                {checked&&<>
+                  <td><Tag color={hasErr?"#ff6b6b":"#00d97e"}>{hasErr?"FAIL":"PASS"}</Tag></td>
+                  <td style={{display:"flex",gap:4,flexWrap:"wrap"}}>{row.errors.map((e,i)=><Tag key={i} color="#ff6b6b">{e.field}: {e.rule}</Tag>)}</td>
+                </>}
+              </tr>
+            );
+          })}</tbody>
+        </table>
+      </div>
+      <hr className="divider"/>
+      <div className="col-label">Python sketch</div>
+      <Code>{`def check_quality(row, schema):
+    errors = []
+    for field, rules in schema.items():
+        val = row.get(field)
+        if rules.get("required") and val is None:
+            errors.append({"field": field, "rule": "NOT_NULL"})
+        if val and rules.get("type") == "email":
+            if not re.match(r"[^@]+@[^@]+\\.[^@]+", val):
+                errors.append({"field": field, "rule": "EMAIL_FORMAT"})
+        if val and "range" in rules:
+            lo, hi = rules["range"]
+            if not (lo <= val <= hi):
+                errors.append({"field": field, "rule": f"RANGE({lo},{hi})"})
+    return errors  # empty = PASS → warehouse, non-empty → dead letter queue`}</Code>
+    </div>
+  );
+}
+
+// ── 2. CDC TRACKER ──
+function CDCTracker() {
+  const before=[
+    {id:1,name:"Alice",salary:65000,dept:"Engineering"},
+    {id:2,name:"Bob",salary:72000,dept:"Marketing"},
+    {id:3,name:"Carol",salary:58000,dept:"Engineering"},
+    {id:4,name:"Dave",salary:81000,dept:"Finance"},
+  ];
+  const after=[
+    {id:1,name:"Alice",salary:70000,dept:"Engineering"},
+    {id:2,name:"Bob",salary:72000,dept:"Sales"},
+    {id:3,name:"Carol",salary:58000,dept:"Engineering"},
+    {id:5,name:"Eva",salary:61000,dept:"Design"},
+  ];
+  const [show,setShow]=useState(false);
+  const ops=[];
+  const bMap=Object.fromEntries(before.map(r=>[r.id,r]));
+  const aMap=Object.fromEntries(after.map(r=>[r.id,r]));
+  before.forEach(row=>{if(!aMap[row.id])ops.push({op:"DELETE",id:row.id,before:row,after:null});});
+  after.forEach(row=>{
+    if(!bMap[row.id])ops.push({op:"INSERT",id:row.id,before:null,after:row});
+    else{const changed=JSON.stringify(bMap[row.id])!==JSON.stringify(row);if(changed)ops.push({op:"UPDATE",id:row.id,before:bMap[row.id],after:row});}
+  });
+  const opColor={INSERT:"#00d97e",UPDATE:"#fcc419",DELETE:"#ff6b6b"};
+  return (
+    <div>
+      <SectionTitle icon="⟳" color="#4dabf7" title="CDC Tracker (Change Data Capture)"
+        subtitle="CDC detects row-level changes between two snapshots — inserts, updates, and deletes — and streams them as events to downstream systems like Kafka or Debezium."/>
+      <hr className="divider"/>
+      <div className="two-col" style={{marginBottom:16}}>
+        {[["Snapshot T₁ (before)",before],["Snapshot T₂ (after)",after]].map(([label,rows])=>(
+          <div key={label}>
+            <div className="col-label">{label}</div>
+            <table><thead><tr>{["id","name","salary","dept"].map(h=><th key={h}>{h}</th>)}</tr></thead>
+            <tbody>{rows.map(row=>{
+              const op=ops.find(o=>o.id===row.id);
+              const highlight=op?opColor[op.op]:null;
+              return (<tr key={row.id} style={{background:show&&highlight?highlight+"15":"transparent"}}>
+                {["id","name","salary","dept"].map(f=>{
+                  const changed=show&&op?.op==="UPDATE"&&op.before?.[f]!==op.after?.[f];
+                  return <td key={f} style={{color:changed?highlight:"var(--text)",fontWeight:changed?500:400}}>{String(row[f])}</td>;
+                })}
+              </tr>);
+            })}</tbody></table>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <div className="col-label" style={{margin:0}}>Change Event Log</div>
+        <Btn onClick={()=>setShow(s=>!s)} variant="primary">{show?"Reset":"▶ Detect changes"}</Btn>
+      </div>
+      {show&&<div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+        {ops.map((op,i)=>(
+          <div key={i} style={{border:`1px solid ${opColor[op.op]}33`,borderRadius:6,padding:"10px 12px",background:opColor[op.op]+"0a"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+              <Tag color={opColor[op.op]}>{op.op}</Tag>
+              <span style={{fontFamily:"var(--mono)",fontSize:11}}>id={op.id}</span>
+            </div>
+            {op.op==="UPDATE"&&<div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {Object.keys(op.before).filter(k=>op.before[k]!==op.after[k]).map(k=>(
+                <span key={k} style={{fontFamily:"var(--mono)",fontSize:11}}>
+                  <span style={{color:"#555"}}>{k}: </span>
+                  <span style={{color:"#ff6b6b",textDecoration:"line-through"}}>{op.before[k]}</span>
+                  <span style={{color:"#555"}}> → </span>
+                  <span style={{color:"#00d97e"}}>{op.after[k]}</span>
+                </span>
+              ))}
+            </div>}
+            {op.op==="INSERT"&&<span style={{fontFamily:"var(--mono)",fontSize:11,color:"#00d97e"}}>{JSON.stringify(op.after)}</span>}
+            {op.op==="DELETE"&&<span style={{fontFamily:"var(--mono)",fontSize:11,color:"#ff6b6b"}}>{JSON.stringify(op.before)}</span>}
+          </div>
+        ))}
+      </div>}
+      <hr className="divider"/>
+      <Code>{`def detect_changes(snap_before: dict, snap_after: dict):
+    events = []
+    for id, row in snap_before.items():
+        if id not in snap_after:
+            events.append({"op": "DELETE", "id": id, "before": row})
+    for id, row in snap_after.items():
+        if id not in snap_before:
+            events.append({"op": "INSERT", "id": id, "after": row})
+        elif hash_row(snap_before[id]) != hash_row(row):
+            events.append({"op": "UPDATE", "id": id,
+                           "before": snap_before[id], "after": row})
+    return events  # stream to Kafka / event bus`}</Code>
+    </div>
+  );
+}
+
+// ── 3. STAR SCHEMA ──
+function StarSchema() {
+  const rawJson={order_id:"ORD-001",date:"2024-01-15",customer_name:"Alice",customer_city:"Helsinki",product:"Laptop",category:"Electronics",qty:1,unit_price:1200};
+  const [show,setShow]=useState(false);
+  const dimCustomers=[{customer_id:1,name:"Alice",city:"Helsinki"},{customer_id:2,name:"Bob",city:"Espoo"}];
+  const dimProducts=[{product_id:1,name:"Laptop",category:"Electronics"},{product_id:2,name:"Mouse",category:"Electronics"},{product_id:3,name:"Desk",category:"Furniture"}];
+  const dimDates=[{date_id:1,date:"2024-01-15",year:2024,month:1},{date_id:2,date:"2024-01-16",year:2024,month:1}];
+  const factOrders=[{order_id:"ORD-001",cust_fk:1,prod_fk:1,date_fk:1,qty:1,revenue:1200},{order_id:"ORD-002",cust_fk:2,prod_fk:2,date_fk:2,qty:2,revenue:70},{order_id:"ORD-003",cust_fk:1,prod_fk:3,date_fk:2,qty:1,revenue:450}];
+  const SchemaTable=({title,color,rows,keys})=>(
+    <div style={{border:`1.5px solid ${color}44`,borderRadius:6,overflow:"hidden"}}>
+      <div style={{background:color+"22",padding:"6px 10px",fontFamily:"var(--mono)",fontSize:11,fontWeight:600,color}}>{title}</div>
+      <table><thead><tr>{keys.map(k=><th key={k}>{k}</th>)}</tr></thead>
+      <tbody>{rows.map((r,i)=><tr key={i}>{keys.map(k=><td key={k}>{String(r[k])}</td>)}</tr>)}</tbody></table>
+    </div>
+  );
+  return (
+    <div>
+      <SectionTitle icon="★" color="#fcc419" title="Star Schema Builder"
+        subtitle="Dimensional modeling: flatten raw JSON into a central fact table (metrics + FK references) surrounded by dimension tables. Queries become fast, intuitive joins."/>
+      <hr className="divider"/>
+      <div className="col-label">Raw JSON (denormalized)</div>
+      <Code style={{fontSize:11,marginBottom:16}}>{JSON.stringify(rawJson,null,2)}</Code>
+      <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
+        <Btn onClick={()=>setShow(s=>!s)} variant="primary">{show?"Hide schema":"▶ Build star schema"}</Btn>
+      </div>
+      {show&&<>
+        <div className="three-col" style={{marginBottom:10}}>
+          <SchemaTable title="dim_customers" color="#00d97e" rows={dimCustomers} keys={["customer_id","name","city"]}/>
+          <SchemaTable title="dim_products" color="#b197fc" rows={dimProducts} keys={["product_id","name","category"]}/>
+          <SchemaTable title="dim_dates" color="#4dabf7" rows={dimDates} keys={["date_id","date","month"]}/>
+        </div>
+        <SchemaTable title="fact_orders — fact table (metrics + foreign keys)" color="#fcc419"
+          rows={factOrders} keys={["order_id","cust_fk","prod_fk","date_fk","qty","revenue"]}/>
+        <div style={{marginTop:12}} className="info-box">
+          <Code>{`-- Revenue by category this month (fast star-join):
+SELECT p.category, SUM(f.revenue)
+FROM fact_orders f
+JOIN dim_products p ON f.prod_fk = p.product_id
+JOIN dim_dates d    ON f.date_fk = d.date_id
+WHERE d.month = 1
+GROUP BY p.category;`}</Code>
+        </div>
+      </>}
+    </div>
+  );
+}
+
+// ── 4. API BRIDGE ──
+function APIBridge() {
+  const [step,setStep]=useState(0);
+  const steps=[
+    {label:"1. Fetch API",desc:"GET with watermark"},
+    {label:"2. Parse JSON",desc:"Validate payload"},
+    {label:"3. Transform",desc:"Type-cast fields"},
+    {label:"4. UPSERT",desc:"Write (idempotent)"},
+  ];
+  const codeBlocks=[
+`import requests
+WATERMARK = "2024-03-01T00:00:00Z"  # from last run
+
+def fetch_users(page=1):
+    resp = requests.get(
+        "https://api.example.com/v1/users",
+        params={
+            "updated_since": WATERMARK,
+            "page": page,
+            "per_page": 100,
+        },
+        headers={"Authorization": f"Bearer {API_KEY}"}
+    )
+    resp.raise_for_status()
+    return resp.json()
+    # → {"users": [...], "next_page": 2 | null}`,
+`# API response payload
+{
+  "users": [
+    {
+      "id": 101,
+      "username": "alice_fi",
+      "email": "alice@mail.com",
+      "created_at": "2024-03-01T10:00:00Z",
+      "active": true
+    },
+    {
+      "id": 102,
+      "username": "bob_se",
+      "email": "bob@mail.com",
+      "created_at": "2024-03-02T11:30:00Z",
+      "active": false
+    }
+  ],
+  "next_page": null
+}`,
+`def transform(raw: dict) -> dict:
+    return {
+        "id":         int(raw["id"]),
+        "username":   str(raw["username"]).lower().strip(),
+        "email":      str(raw["email"]).lower().strip(),
+        "created_at": datetime.fromisoformat(
+                          raw["created_at"].replace("Z", "+00:00")),
+        "active":     bool(raw["active"]),
+    }
+
+records = [transform(u) for u in data["users"]]`,
+`-- Generated UPSERT SQL (safe to re-run)
+INSERT INTO users (id, username, email, created_at, active)
+VALUES (101, 'alice_fi', 'alice@mail.com', '2024-03-01', true)
+ON CONFLICT (id) DO UPDATE SET
+  username   = EXCLUDED.username,
+  email      = EXCLUDED.email,
+  active     = EXCLUDED.active;
+
+INSERT INTO users (id, username, email, created_at, active)
+VALUES (102, 'bob_se', 'bob@mail.com', '2024-03-02', false)
+ON CONFLICT (id) DO UPDATE SET
+  username   = EXCLUDED.username,
+  email      = EXCLUDED.email,
+  active     = EXCLUDED.active;`,
+  ];
+  return (
+    <div>
+      <SectionTitle icon="⇄" color="#b197fc" title="REST API → SQL Bridge"
+        subtitle="APIs return JSON. Warehouses speak SQL. The bridge fetches, validates, type-casts, and upserts records — with ON CONFLICT to avoid duplicates on re-runs."/>
+      <hr className="divider"/>
+      <div className="tab-row">
+        {steps.map((s,i)=>(
+          <div key={i} className={`tab${step===i?" active":""}`} style={{borderColor:step===i?"#b197fc":"var(--border)"}} onClick={()=>setStep(i)}>
+            <span style={{color:step===i?"#b197fc":"inherit"}}>{s.label}</span>
+            <span style={{display:"block",fontSize:10,color:"#555",marginTop:1}}>{s.desc}</span>
+          </div>
+        ))}
+      </div>
+      <Code>{codeBlocks[step]}</Code>
+    </div>
+  );
+}
+
+// ── 5. SCD ──
+function SCDHandler() {
+  const [type,setType]=useState(1);
+  const [applied,setApplied]=useState(false);
+  const type1Result=[{id:1,cust_id:42,name:"Alice Johnson",city:"Helsinki",valid_from:"2023-01-01",valid_to:null,current:true}];
+  const type2Result=[
+    {id:1,cust_id:42,name:"Alice Mäkinen",city:"Tampere",valid_from:"2023-01-01",valid_to:"2024-06-15",current:false},
+    {id:2,cust_id:42,name:"Alice Johnson",city:"Helsinki",valid_from:"2024-06-15",valid_to:null,current:true},
+  ];
+  const original=[{id:1,cust_id:42,name:"Alice Mäkinen",city:"Tampere",valid_from:"2023-01-01",valid_to:null,current:true}];
+  const result=applied?(type===1?type1Result:type2Result):original;
+  const fields=["id","cust_id","name","city","valid_from","valid_to","current"];
+  return (
+    <div>
+      <SectionTitle icon="⏱" color="#ff8787" title="Slowly Changing Dimensions (SCD)"
+        subtitle="When a dimension attribute changes (a customer moves cities), do you overwrite history (Type 1) or preserve it with date-ranged versioning (Type 2)?"/>
+      <hr className="divider"/>
+      <div className="two-col" style={{marginBottom:16}}>
+        {[1,2].map(t=>(
+          <div key={t} onClick={()=>{setType(t);setApplied(false);}} style={{borderRadius:8,padding:14,cursor:"pointer",border:`1.5px solid ${type===t?"#ff8787":"var(--border)"}`,background:type===t?"#ff878710":"var(--bg3)",transition:"all .15s"}}>
+            <div style={{fontWeight:500,color:type===t?"#ff8787":"var(--text)",marginBottom:4,fontFamily:"var(--mono)"}}>SCD Type {t}</div>
+            <div style={{fontSize:12,color:"#888"}}>{t===1?"Overwrite — no history, always current value":"Versioned rows — full history with date ranges"}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:16,alignItems:"start",marginBottom:12}}>
+        <div>
+          <div className="col-label">Dimension table state</div>
+          <div style={{overflowX:"auto"}}>
+            <table>
+              <thead><tr>{fields.map(h=><th key={h}>{h}</th>)}</tr></thead>
+              <tbody>{result.map((row,i)=>(
+                <tr key={i} style={{background:applied?(type===1?"#fcc41910":i===result.length-1?"#00d97e10":"#33333730"):"transparent"}}>
+                  {fields.map(f=><td key={f}>{String(row[f])}</td>)}
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,paddingTop:24}}>
+          <div style={{background:"#ff878710",border:"1px solid #ff878744",borderRadius:6,padding:"10px 14px",fontSize:11,fontFamily:"var(--mono)",textAlign:"center",whiteSpace:"nowrap"}}>
+            <div style={{color:"#ff8787",fontWeight:600,marginBottom:4}}>INCOMING CHANGE</div>
+            <div>city: <span style={{color:"#ff6b6b",textDecoration:"line-through"}}>Tampere</span> → <span style={{color:"#00d97e"}}>Helsinki</span></div>
+            <div style={{marginTop:2}}>name: <span style={{color:"#ff6b6b",textDecoration:"line-through"}}>Mäkinen</span> → <span style={{color:"#00d97e"}}>Johnson</span></div>
+          </div>
+          <Btn onClick={()=>setApplied(true)} variant="primary" disabled={applied}>▶ Apply</Btn>
+        </div>
+      </div>
+      {applied&&<div className="info-box" style={{background:type===1?"#fcc41910":"#00d97e10",border:`1px solid ${type===1?"#fcc41944":"#00d97e44"}`,marginBottom:12}}>
+        {type===1
+          ?<><span style={{color:"#fcc419",fontWeight:600}}>Type 1: </span>Row overwritten. Previous values are gone — you can't tell she ever lived in Tampere.</>
+          :<><span style={{color:"#00d97e",fontWeight:600}}>Type 2: </span>Old row closed (valid_to set), new row inserted. Full history preserved — query "where was Alice in March 2024?" → Tampere.</>}
+      </div>}
+      <Code>{type===1
+        ?`-- SCD Type 1: simple UPDATE (overwrites history)
+UPDATE dim_customers
+SET name = 'Alice Johnson', city = 'Helsinki'
+WHERE customer_id = 42;`
+        :`-- SCD Type 2: close old row, insert new row
+UPDATE dim_customers
+SET valid_to = CURRENT_DATE, is_current = FALSE
+WHERE customer_id = 42 AND is_current = TRUE;
+
+INSERT INTO dim_customers
+  (customer_id, name, city, valid_from, valid_to, is_current)
+VALUES (42, 'Alice Johnson', 'Helsinki', CURRENT_DATE, NULL, TRUE);`}</Code>
+    </div>
+  );
+}
+
+// ── 6. DATA LAKE ──
+function DataLakeOrganizer() {
+  const [strategy,setStrategy]=useState("hive");
+  const strategies={
+    hive:{label:"Hive-style (year/month/day)",desc:"Standard partition pruning — Spark/Presto skip irrelevant partitions automatically when filtering on date.",
+      tree:`s3://datalake/events/
+  └── year=2024/
+       ├── month=01/
+       │    ├── day=15/
+       │    │    ├── part-00001.parquet  (128 MB)
+       │    │    └── part-00002.parquet  (120 MB)
+       │    └── day=16/
+       │         └── part-00001.parquet  (95 MB)
+       └── month=02/
+            └── day=01/
+                 └── part-00001.parquet  (110 MB)`,
+      code:`# PySpark: filter January 2024 — partition pruning kicks in
+df = spark.read.parquet("s3://datalake/events/")
+jan = df.filter((df.year == 2024) & (df.month == 1))
+# Spark sees year=2024/month=01/ only
+# Scans 2 files instead of the entire lake`},
+    region:{label:"Region + date",desc:"Multi-dimensional partitioning. Best when queries frequently filter by both region and date.",
+      tree:`s3://datalake/orders/
+  └── region=EU/
+       ├── year=2024/month=01/
+       │    ├── part-00001.parquet
+       │    └── part-00002.parquet
+       └── year=2024/month=02/
+            └── part-00001.parquet
+  └── region=US/
+       └── year=2024/month=01/
+            ├── part-00001.parquet
+            └── part-00002.parquet`,
+      code:`# Two-dimensional partition pruning
+df = spark.read.parquet("s3://datalake/orders/") \\
+    .filter(
+        (col("region") == "EU") &
+        (col("year") == 2024) &
+        (col("month") == 1)
+    )
+# Scans: region=EU/year=2024/month=01/ only`},
+    ingestion:{label:"Ingestion timestamp (raw zone)",desc:"Raw landing zone — no transformation. Every batch gets its own folder. Easy to replay and reprocess.",
+      tree:`s3://datalake/raw/crm/
+  └── ingested_at=2024-01-15T10:30:00/
+       └── batch_00001.json.gz
+  └── ingested_at=2024-01-15T11:00:00/
+       └── batch_00001.json.gz
+  └── ingested_at=2024-01-16T10:00:00/
+       └── batch_00001.json.gz
+  └── _metadata/
+       └── schema_v2.json`,
+      code:`# Replay a specific ingestion window
+# Useful for debugging / reprocessing
+df = spark.read.json(
+    "s3://datalake/raw/crm/ingested_at=2024-01-15*/"
+)
+# Picks up both 10:30 and 11:00 batches`},
+  };
+  const s=strategies[strategy];
+  return (
+    <div>
+      <SectionTitle icon="⊞" color="#00d97e" title="Data Lake File Organizer"
+        subtitle="Partitioning determines which files a query must scan. Good partition design = less I/O = faster + cheaper queries. The folder structure IS the index."/>
+      <hr className="divider"/>
+      <div className="tab-row">
+        {Object.entries(strategies).map(([k,v])=>(
+          <div key={k} className={`tab${strategy===k?" active":""}`} style={{borderColor:strategy===k?"#00d97e":"var(--border)"}} onClick={()=>setStrategy(k)}>
+            <span style={{color:strategy===k?"#00d97e":"inherit"}}>{v.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="info-box" style={{background:"var(--bg3)",border:"1px solid var(--border)",marginBottom:12}}>
+        <p style={{fontSize:13,color:"#888",marginBottom:10}}>{s.desc}</p>
+        <div className="tree-view">{s.tree}</div>
+      </div>
+      <Code>{s.code}</Code>
+    </div>
+  );
+}
+
+// ── 7. DLQ ──
+function DeadLetterQueue() {
+  const records=[
+    {id:1,payload:'{"user": 101, "amount": 59.99}',valid:true},
+    {id:2,payload:'{"user": null, "amount": 12.00}',valid:false,reason:"user is NULL"},
+    {id:3,payload:'{"user": 103, "amount": -5.00}',valid:false,reason:"amount is negative"},
+    {id:4,payload:'{"user": 104, "amount": 200.00}',valid:true},
+    {id:5,payload:'not valid json %%',valid:false,reason:"JSON parse error"},
+  ];
+  const [processed,setProcessed]=useState([]);
+  const [running,setRunning]=useState(false);
+  const [done,setDone]=useState(false);
+  const run=()=>{
+    setProcessed([]);setDone(false);setRunning(true);
+    records.forEach((r,i)=>{
+      setTimeout(()=>{
+        setProcessed(p=>[...p,r]);
+        if(i===records.length-1){setRunning(false);setDone(true);}
+      },(i+1)*500);
+    });
+  };
+  const good=processed.filter(r=>r.valid);
+  const bad=processed.filter(r=>!r.valid);
+  return (
+    <div>
+      <SectionTitle icon="⚑" color="#ff6b6b" title="Dead Letter Queue"
+        subtitle="When a pipeline record fails processing, instead of crashing the entire pipeline, route it to a DLQ for inspection and later replay. The pipeline keeps moving."/>
+      <hr className="divider"/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <span style={{fontSize:12,color:"#888"}}>{records.length} records entering pipeline</span>
+        <Btn onClick={run} variant="primary" disabled={running}>{running?"Processing…":"▶ Run pipeline"}</Btn>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:12,alignItems:"start"}}>
+        <div>
+          <div className="col-label">Pipeline processor</div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {records.map(r=>{
+              const p=processed.find(x=>x.id===r.id);
+              return (<div key={r.id} style={{background:"var(--bg3)",border:`1px solid ${!p?"var(--border)":p.valid?"#00d97e44":"#ff6b6b44"}`,borderRadius:6,padding:"8px 10px",transition:"all .3s"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <code style={{fontSize:11,color:"#666"}}>{r.payload.slice(0,36)}{r.payload.length>36?"…":""}</code>
+                  {p&&<Tag color={p.valid?"#00d97e":"#ff6b6b"}>{p.valid?"✓ OK":"✗ DLQ"}</Tag>}
+                </div>
+                {p&&!p.valid&&<div style={{fontSize:11,color:"#ff6b6b",marginTop:3}}>↳ {r.reason}</div>}
+              </div>);
+            })}
+          </div>
+        </div>
+        <div>
+          <div className="col-label" style={{color:"#00d97e"}}>✓ Main sink ({good.length})</div>
+          <div style={{display:"flex",flexDirection:"column",gap:5}}>
+            {good.map(r=><div key={r.id} style={{background:"#00d97e0a",border:"1px solid #00d97e22",borderRadius:5,padding:"6px 8px",fontSize:11,fontFamily:"var(--mono)",color:"#00d97e"}}>{r.payload}</div>)}
+          </div>
+        </div>
+        <div>
+          <div className="col-label" style={{color:"#ff6b6b"}}>⚑ Dead letter ({bad.length})</div>
+          <div style={{display:"flex",flexDirection:"column",gap:5}}>
+            {bad.map(r=><div key={r.id} style={{background:"#ff6b6b0a",border:"1px solid #ff6b6b22",borderRadius:5,padding:"6px 8px",fontSize:11,fontFamily:"var(--mono)"}}>
+              <div style={{color:"#555"}}>{r.payload.slice(0,22)}…</div>
+              <div style={{color:"#ff6b6b"}}>↳ {r.reason}</div>
+            </div>)}
+          </div>
+        </div>
+      </div>
+      <hr className="divider"/>
+      <Code>{`def process_record(record, main_sink, dlq):
+    try:
+        payload   = json.loads(record)      # parse
+        validated = validate(payload)       # schema check
+        main_sink.write(validated)          # success path
+    except (json.JSONDecodeError, ValidationError) as e:
+        dlq.send({                          # failure path
+            "original":    record,
+            "error":       str(e),
+            "timestamp":   datetime.utcnow().isoformat(),
+            "retry_count": 0,
+        })
+        metrics.increment("dlq.routed")     # track it`}</Code>
+    </div>
+  );
+}
+
+// ── 8. BACKFILL ──
+function BackfillScript() {
+  const [ran,setRan]=useState(false);
+  const allRecords=[
+    {id:1,event:"purchase",user:101,ts:"2024-01-10 09:00",load_ts:"2024-01-10 09:05"},
+    {id:2,event:"view",user:102,ts:"2024-01-11 10:00",load_ts:"2024-01-11 10:05"},
+    {id:1,event:"purchase",user:101,ts:"2024-01-10 09:00",load_ts:"2024-02-01 08:00"},
+    {id:3,event:"click",user:103,ts:"2024-01-12 11:00",load_ts:"2024-02-01 08:00"},
+    {id:2,event:"view",user:102,ts:"2024-01-11 10:00",load_ts:"2024-02-01 08:01"},
+  ];
+  const deduped=Object.values(allRecords.reduce((acc,r)=>{
+    if(!acc[r.id]||r.load_ts>acc[r.id].load_ts)acc[r.id]=r;return acc;
+  },{}));
+  const isDup=(row)=>{
+    const same=allRecords.filter(x=>x.id===row.id);
+    const latest=same.reduce((a,b)=>a.load_ts>b.load_ts?a:b);
+    return same.length>1&&row.load_ts<latest.load_ts;
+  };
+  return (
+    <div>
+      <SectionTitle icon="↺" color="#4dabf7" title="Backfill Script"
+        subtitle="Reprocessing historical data introduces duplicates. A backfill uses ROW_NUMBER() to keep only the latest version of each business key — making every rerun idempotent."/>
+      <hr className="divider"/>
+      <div className="col-label">All records including backfill duplicates</div>
+      <div style={{overflowX:"auto",marginBottom:12}}>
+        <table>
+          <thead><tr>{["id","event","user","ts","load_ts",...(ran?["action"]:[])].map(h=><th key={h}>{h}</th>)}</tr></thead>
+          <tbody>{allRecords.map((r,i)=>{
+            const dup=ran&&isDup(r);
+            return (<tr key={i} style={{background:ran?(dup?"#ff6b6b08":"#00d97e08"):"transparent",opacity:ran&&dup?0.5:1}}>
+              {["id","event","user","ts","load_ts"].map(f=><td key={f}>{r[f]}</td>)}
+              {ran&&<td><Tag color={dup?"#ff6b6b":"#00d97e"}>{dup?"DROP":"KEEP"}</Tag></td>}
+            </tr>);
+          })}</tbody>
+        </table>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:ran?12:0}}>
+        <span style={{fontSize:12,color:"#888"}}>ROW_NUMBER keeps latest load_ts per business key (id)</span>
+        <Btn onClick={()=>setRan(r=>!r)} variant="primary">{ran?"Reset":"▶ Deduplicate"}</Btn>
+      </div>
+      {ran&&<>
+        <div className="col-label" style={{color:"#00d97e",margin:"12px 0 8px"}}>✓ Deduplicated result ({deduped.length} rows)</div>
+        <table style={{marginBottom:16}}>
+          <thead><tr>{["id","event","user","ts","load_ts"].map(h=><th key={h} style={{borderBottomColor:"#00d97e44",color:"#00d97e"}}>{h}</th>)}</tr></thead>
+          <tbody>{deduped.map((r,i)=><tr key={i}><td>{r.id}</td><td>{r.event}</td><td>{r.user}</td><td>{r.ts}</td><td>{r.load_ts}</td></tr>)}</tbody>
+        </table>
+      </>}
+      <Code>{`-- SQL dedup with ROW_NUMBER (idempotent backfill pattern)
+WITH ranked AS (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY id            -- business key
+      ORDER BY load_ts DESC      -- keep newest load
+    ) AS rn
+  FROM events_raw
+)
+INSERT INTO events_clean
+  SELECT id, event, user_id, ts, load_ts
+  FROM ranked
+  WHERE rn = 1;                  -- discard older duplicates`}</Code>
+    </div>
+  );
+}
+
+// ── 9. DATA DIFF ──
+function DataDiffTool() {
+  const tableA=[
+    {id:1,name:"Alice",score:88,status:"active"},
+    {id:2,name:"Bob",score:72,status:"active"},
+    {id:3,name:"Carol",score:95,status:"inactive"},
+    {id:4,name:"Dave",score:60,status:"active"},
+  ];
+  const tableB=[
+    {id:1,name:"Alice",score:91,status:"active"},
+    {id:2,name:"Bob",score:72,status:"suspended"},
+    {id:3,name:"Carol",score:95,status:"inactive"},
+    {id:5,name:"Eva",score:78,status:"active"},
+  ];
+  const [show,setShow]=useState(false);
+  const diff=[];
+  const bMap=Object.fromEntries(tableB.map(r=>[r.id,r]));
+  const aMap=Object.fromEntries(tableA.map(r=>[r.id,r]));
+  tableA.forEach(r=>{
+    if(!bMap[r.id])diff.push({type:"deleted",row:r});
+    else{const b=bMap[r.id];const ds=Object.keys(r).filter(k=>r[k]!==b[k]).map(k=>({field:k,a:r[k],b:b[k]}));
+    if(ds.length)diff.push({type:"changed",rowA:r,rowB:b,diffs:ds});else diff.push({type:"match",row:r});}
+  });
+  tableB.forEach(r=>{if(!aMap[r.id])diff.push({type:"added",row:r});});
+  const tc={deleted:"#ff6b6b",changed:"#fcc419",match:"#00d97e",added:"#4dabf7"};
+  return (
+    <div>
+      <SectionTitle icon="≠" color="#fcc419" title="Data Diff Tool"
+        subtitle="Compares two table snapshots row-by-row, surfacing added, deleted, and changed records. Essential for validating migrations and pipeline changes."/>
+      <hr className="divider"/>
+      <div className="two-col" style={{marginBottom:12}}>
+        {[["Table A (source)",tableA],["Table B (target)",tableB]].map(([label,rows])=>(
+          <div key={label}>
+            <div className="col-label">{label}</div>
+            <table><thead><tr>{["id","name","score","status"].map(h=><th key={h}>{h}</th>)}</tr></thead>
+            <tbody>{rows.map((r,i)=><tr key={i}>{["id","name","score","status"].map(f=><td key={f}>{String(r[f])}</td>)}</tr>)}</tbody></table>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:show?10:0}}>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {Object.entries(tc).map(([t,c])=><Tag key={t} color={c}>{diff.filter(d=>d.type===t).length} {t}</Tag>)}
+        </div>
+        <Btn onClick={()=>setShow(s=>!s)} variant="primary">{show?"Hide diff":"▶ Run diff"}</Btn>
+      </div>
+      {show&&<div style={{display:"flex",flexDirection:"column",gap:6,marginTop:10,marginBottom:16}}>
+        {diff.map((d,i)=>(
+          <div key={i} style={{background:tc[d.type]+"0a",border:`1px solid ${tc[d.type]}33`,borderRadius:5,padding:"8px 10px"}}>
+            <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:d.diffs?4:0}}>
+              <Tag color={tc[d.type]}>{d.type.toUpperCase()}</Tag>
+              <code style={{fontSize:11}}>id={d.row?.id??d.rowA?.id}</code>
+              {d.type==="match"&&<span style={{fontSize:11,color:"#00d97e"}}>identical ✓</span>}
+            </div>
+            {d.diffs&&d.diffs.map((x,j)=>(
+              <div key={j} style={{fontSize:11,fontFamily:"var(--mono)",marginLeft:8}}>
+                {x.field}: <span style={{color:"#ff6b6b",textDecoration:"line-through"}}>{String(x.a)}</span> → <span style={{color:"#00d97e"}}>{String(x.b)}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>}
+      <Code>{`def diff_tables(df_a, df_b, key="id"):
+    joined = df_a.merge(
+        df_b, on=key, how="outer",
+        suffixes=("_a", "_b"),
+        indicator=True
+    )
+    deleted = joined[joined["_merge"] == "left_only"]
+    added   = joined[joined["_merge"] == "right_only"]
+    both    = joined[joined["_merge"] == "both"]
+    changed = both[both.apply(
+        lambda r: any(
+            r[f"{c}_a"] != r[f"{c}_b"]
+            for c in non_key_cols
+        ), axis=1
+    )]
+    return {"added": added, "deleted": deleted, "changed": changed}`}</Code>
+    </div>
+  );
+}
+
+// ── 10. CONFIG PIPELINE ──
+function ConfigDrivenPipeline() {
+  const [config,setConfig]=useState({source:"postgres",destination:"bigquery",validate:true,deduplicate:true,partition_by:"date",notify:true,batch_size:1000});
+  const steps=[
+    {key:"extract",label:"Extract",desc:`from ${config.source}`,always:true},
+    {key:"validate",label:"Validate",desc:"schema + nulls",flag:"validate"},
+    {key:"deduplicate",label:"Deduplicate",desc:"remove dup keys",flag:"deduplicate"},
+    {key:"transform",label:"Transform",desc:`partition by ${config.partition_by}`,always:true},
+    {key:"load",label:"Load",desc:`write to ${config.destination}`,always:true},
+    {key:"notify",label:"Notify",desc:"alert on failure",flag:"notify"},
+  ];
+  const active=steps.filter(s=>s.always||config[s.flag]);
+  const yaml=`source: ${config.source}
+destination: ${config.destination}
+batch_size: ${config.batch_size}
+steps:
+  - extract
+${config.validate?"  - validate\n":""}${config.deduplicate?"  - deduplicate\n":""}  - transform
+  - load:
+      partition_by: ${config.partition_by}
+${config.notify?"  - notify_on_failure":""}`.replace(/\n\n+/g,"\n");
+  return (
+    <div>
+      <SectionTitle icon="⚙" color="#b197fc" title="Config-Driven Pipeline"
+        subtitle="Pipeline behaviour is controlled by YAML/JSON — no code changes needed to toggle steps, swap sources, or adjust parameters. Change the config, redeploy, done."/>
+      <hr className="divider"/>
+      <div className="two-col">
+        <div>
+          <div className="col-label">Pipeline controls</div>
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            <div className="two-col" style={{gap:8}}>
+              <div><div style={{fontSize:11,color:"#888",marginBottom:3}}>Source</div>
+                <select value={config.source} onChange={e=>setConfig(c=>({...c,source:e.target.value}))}>
+                  {["postgres","mysql","s3","api","kafka"].map(v=><option key={v} value={v}>{v}</option>)}</select></div>
+              <div><div style={{fontSize:11,color:"#888",marginBottom:3}}>Destination</div>
+                <select value={config.destination} onChange={e=>setConfig(c=>({...c,destination:e.target.value}))}>
+                  {["bigquery","snowflake","redshift","duckdb"].map(v=><option key={v} value={v}>{v}</option>)}</select></div>
+            </div>
+            <div><div style={{fontSize:11,color:"#888",marginBottom:3}}>Partition by</div>
+              <select value={config.partition_by} onChange={e=>setConfig(c=>({...c,partition_by:e.target.value}))}>
+                {["date","region","user_id","event_type"].map(v=><option key={v} value={v}>{v}</option>)}</select></div>
+            <div>
+              <div style={{fontSize:11,color:"#888",marginBottom:4}}>Batch size: <span style={{color:"#b197fc",fontFamily:"var(--mono)"}}>{config.batch_size}</span></div>
+              <input type="range" min={100} max={5000} step={100} value={config.batch_size} onChange={e=>setConfig(c=>({...c,batch_size:+e.target.value}))}/>
+            </div>
+            {[["validate","Validate schema"],["deduplicate","Deduplicate records"],["notify","Notify on failure"]].map(([k,lbl])=>(
+              <label key={k}><input type="checkbox" checked={config[k]} onChange={e=>setConfig(c=>({...c,[k]:e.target.checked}))}/>{lbl}</label>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="col-label">Generated YAML config</div>
+          <Code style={{fontSize:11,marginBottom:12}}>{yaml}</Code>
+          <div className="col-label">Active pipeline steps</div>
+          <div>
+            {active.map((s,i)=>(
+              <div key={s.key} className="pipeline-step">
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+                  <div className="step-dot" style={{background:"#b197fc"}}/>
+                  {i<active.length-1&&<div className="step-line" style={{background:"#b197fc44"}}/>}
+                </div>
+                <div className="step-text">
+                  <span style={{fontSize:13,fontWeight:500,color:"var(--text)"}}>{s.label}</span>
+                  <span style={{fontSize:11,color:"#888",marginLeft:8}}>{s.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── 11. DASHBOARD BACKEND ──
+function DashboardBackend() {
+  const rawData=[
+    {date:"2024-01",region:"EU",product:"Laptop",revenue:48000,units:40},
+    {date:"2024-01",region:"US",product:"Laptop",revenue:72000,units:60},
+    {date:"2024-01",region:"EU",product:"Mouse",revenue:2800,units:80},
+    {date:"2024-02",region:"EU",product:"Laptop",revenue:52000,units:43},
+    {date:"2024-02",region:"US",product:"Laptop",revenue:68000,units:57},
+    {date:"2024-02",region:"EU",product:"Mouse",revenue:3100,units:89},
+    {date:"2024-03",region:"EU",product:"Laptop",revenue:56000,units:47},
+    {date:"2024-03",region:"US",product:"Laptop",revenue:75000,units:63},
+    {date:"2024-03",region:"EU",product:"Mouse",revenue:2600,units:74},
+  ];
+  const [groupBy,setGroupBy]=useState("region");
+  const [metric,setMetric]=useState("revenue");
+  const agg=rawData.reduce((acc,r)=>{
+    const k=r[groupBy];acc[k]=acc[k]||{revenue:0,units:0};acc[k].revenue+=r.revenue;acc[k].units+=r.units;return acc;
+  },{});
+  const chartData=Object.entries(agg).sort((a,b)=>b[1][metric]-a[1][metric]);
+  const maxV=Math.max(...chartData.map(([,v])=>v[metric]));
+  const byDate=rawData.reduce((acc,r)=>{acc[r.date]=(acc[r.date]||0)+r[metric];return acc;},{});
+  const maxD=Math.max(...Object.values(byDate));
+  const fmt=v=>metric==="revenue"?`€${(v/1000).toFixed(0)}k`:v;
+  return (
+    <div>
+      <SectionTitle icon="▤" color="#ff8787" title="Mini Dashboard Backend"
+        subtitle="The backend pre-aggregates raw transactional data into summary metrics. Dashboards query materialized views, not raw rows — orders of magnitude faster at scale."/>
+      <hr className="divider"/>
+      <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap",justifyContent:"space-between"}}>
+        <div style={{display:"flex",gap:6}}>
+          {["region","product","date"].map(g=>(
+            <button key={g} onClick={()=>setGroupBy(g)} style={{padding:"5px 12px",borderRadius:4,fontSize:12,cursor:"pointer",fontWeight:500,border:`1px solid ${groupBy===g?"#ff8787":"var(--border)"}`,background:groupBy===g?"#ff878715":"var(--bg3)",color:groupBy===g?"#ff8787":"#888",fontFamily:"var(--mono)"}}>
+              group by {g}
+            </button>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:6}}>
+          {["revenue","units"].map(m=>(
+            <button key={m} onClick={()=>setMetric(m)} style={{padding:"5px 12px",borderRadius:4,fontSize:12,cursor:"pointer",fontWeight:500,border:`1px solid ${metric===m?"#b197fc":"var(--border)"}`,background:metric===m?"#b197fc15":"var(--bg3)",color:metric===m?"#b197fc":"#888",fontFamily:"var(--mono)"}}>
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="two-col" style={{marginBottom:16}}>
+        <div>
+          <div className="col-label">By {groupBy} — {metric}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {chartData.map(([k,v])=>(
+              <div key={k}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}>
+                  <span style={{fontWeight:500}}>{k}</span>
+                  <span style={{fontFamily:"var(--mono)",color:"#888"}}>{fmt(v[metric])}</span>
+                </div>
+                <div style={{height:10,background:"var(--bg3)",borderRadius:5,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${(v[metric]/maxV)*100}%`,background:"#ff8787",borderRadius:5,transition:"width .4s"}}/>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="col-label">Trend by month</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {Object.entries(byDate).map(([d,v])=>(
+              <div key={d}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}>
+                  <span style={{fontWeight:500}}>{d}</span>
+                  <span style={{fontFamily:"var(--mono)",color:"#888"}}>{fmt(v)}</span>
+                </div>
+                <div style={{height:10,background:"var(--bg3)",borderRadius:5,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${(v/maxD)*100}%`,background:"#b197fc",borderRadius:5,transition:"width .4s"}}/>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <Code>{`-- Materialized view: pre-aggregated for dashboard speed
+CREATE MATERIALIZED VIEW mv_sales_by_region_month AS
+SELECT
+  region,
+  DATE_TRUNC('month', order_date)  AS month,
+  product_category,
+  SUM(revenue)                     AS total_revenue,
+  SUM(units_sold)                  AS total_units,
+  COUNT(DISTINCT order_id)         AS order_count
+FROM fact_orders f
+JOIN dim_products  p ON f.product_id  = p.id
+JOIN dim_customers c ON f.customer_id = c.id
+GROUP BY region, month, product_category;
+
+-- Dashboard query (hits the view, not 100M raw rows)
+SELECT region, SUM(total_revenue)
+FROM mv_sales_by_region_month
+WHERE month >= '2024-01-01'
+GROUP BY region;`}</Code>
+    </div>
+  );
+}
+
+const PANELS={dq:DataQualityChecker,cdc:CDCTracker,star:StarSchema,api:APIBridge,scd:SCDHandler,lake:DataLakeOrganizer,dlq:DeadLetterQueue,backfill:BackfillScript,diff:DataDiffTool,config:ConfigDrivenPipeline,dashboard:DashboardBackend};
+
+function App() {
+  const [active,setActive]=useState("dq");
+  const Panel=PANELS[active];
+  const concept=concepts.find(c=>c.id===active);
+  return (
+    <div id="root">
+      <div className="hero">
+        <div className="grid-pattern"/>
+        <div style={{position:"relative",zIndex:1}}>
+          <div className="hero-badge">● Data Engineering Lab</div>
+          <h1>Learn data engineering<br/><span>by building it.</span></h1>
+          <p>11 interactive playgrounds covering the core patterns every data engineer needs to know — from CDC and SCD to partitioning, quality checks, and backfills. Click, tweak, and see it run.</p>
+          <div className="hero-stats">
+            <div className="hero-stat"><span className="hero-stat-num">11</span><span className="hero-stat-label">Concepts</span></div>
+            <div className="hero-stat"><span className="hero-stat-num">100%</span><span className="hero-stat-label">Interactive</span></div>
+            <div className="hero-stat"><span className="hero-stat-num">0</span><span className="hero-stat-label">Setup required</span></div>
+          </div>
+        </div>
+      </div>
+      <div className="app-shell">
+        <div className="sidebar">
+          <div className="sidebar-header">Concepts</div>
+          {concepts.map(c=>(
+            <div key={c.id} className={`nav-item${active===c.id?" active":""}`} onClick={()=>setActive(c.id)}>
+              <span className="nav-icon" style={{color:c.color}}>{c.icon}</span>
+              <span className="nav-label">{c.label}</span>
+              <span className="nav-number">{c.num}</span>
+            </div>
+          ))}
+        </div>
+        <div className="content">
+          <div className="panel">
+            <Panel key={active}/>
+          </div>
+        </div>
+      </div>
+      <footer className="footer">
+        <span>Data Engineering Lab — 11 interactive concepts</span>
+        <span>Built with React · No build step · Open in any browser</span>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+</script>
+</body>
+</html>
