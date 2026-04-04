@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Data Engineering Lab — Learn by Building</title>
+  <meta name="description" content="11 interactive playgrounds to learn data engineering: CDC, Star Schema, SCD, Data Quality, and more."/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css"/>
+
+  <!-- React (CDN — no build step needed) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!--
+    Load order matters:
+      1. shared.js    — primitive components (Tag, Code, Btn, …)
+      2. concepts/*   — each concept registers itself on window
+      3. app.js       — assembles everything and calls ReactDOM.render
+  -->
+
+  <!-- Shared UI primitives -->
+  <script type="text/babel" src="js/shared.js"></script>
+
+  <!-- Concept panels (one file per concept) -->
+  <script type="text/babel" src="js/concepts/01-data-quality.js"></script>
+  <script type="text/babel" src="js/concepts/02-cdc-tracker.js"></script>
+  <script type="text/babel" src="js/concepts/03-star-schema.js"></script>
+  <script type="text/babel" src="js/concepts/04-api-bridge.js"></script>
+  <script type="text/babel" src="js/concepts/05-scd-handler.js"></script>
+  <script type="text/babel" src="js/concepts/06-data-lake.js"></script>
+  <script type="text/babel" src="js/concepts/07-dlq.js"></script>
+  <script type="text/babel" src="js/concepts/08-backfill.js"></script>
+  <script type="text/babel" src="js/concepts/09-data-diff.js"></script>
+  <script type="text/babel" src="js/concepts/10-config-pipeline.js"></script>
+  <script type="text/babel" src="js/concepts/11-dashboard-backend.js"></script>
+
+  <!-- App shell — must load last -->
+  <script type="text/babel" src="js/app.js"></script>
+</body>
+</html>
